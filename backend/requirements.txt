@@ -1,0 +1,33 @@
+# 焊缝缺陷智能检测平台 - 后端依赖
+# 安装方式: conda activate ai && pip install -r requirements.txt
+
+# ===== Web 框架 =====
+fastapi
+uvicorn[standard]
+python-multipart          # 文件上传接口依赖
+
+# ===== 数据库 =====
+sqlalchemy                # ORM
+pymysql                   # MySQL 驱动
+cryptography              # pymysql 认证加密依赖
+redis                     # Redis 客户端(任务队列/进度)
+pydantic-settings         # .env 配置管理
+email-validator           # pydantic EmailStr 校验依赖
+
+# ===== 认证 =====
+pyjwt                     # JWT 签发与校验
+passlib[bcrypt]           # 密码哈希
+bcrypt==4.0.1             # 必须钉住: passlib 1.7.4 不兼容 bcrypt 5.x(读取版本号失败+超72字节报错)
+
+# ===== 图像处理与检测模型 =====
+opencv-python             # 图像增强 pipeline
+numpy
+pillow
+ultralytics               # YOLO 预训练权重加载与推理(会自动安装 PyTorch, Windows 下默认 CPU 版)
+onnxruntime               # ONNX 推理(可选, 预留部署路线)
+
+# ===== 报告导出 =====
+python-docx               # Word 检测报告模板化生成
+
+# ===== 工具 =====
+aiofiles                  # 异步文件读写
