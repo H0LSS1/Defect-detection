@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     result_dir: str = "results"
 
     # ===== 模型 =====
-    yolo_weights: str = "weights/yolov8n.pt"
+    yolo_weights: str = "weights/yolov8n.onnx"
     conf_threshold: float = 0.25
 
 

@@ -24,3 +24,7 @@ frontend/dist/
 
 # 计划
 PLAN.md
+
+# 测试
+backend/check
+backend/testdata
