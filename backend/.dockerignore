@@ -1,0 +1,10 @@
+# 构建镜像时排除的内容(减小体积 + 防止敏感信息/运行时数据被打进镜像)
+.venv
+__pycache__
+**/__pycache__
+.env
+weights/
+uploads/
+results/
+check/
+scripts/__pycache__

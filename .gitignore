@@ -32,3 +32,11 @@ PLAN.md
 # 测试
 backend/check
 backend/testdata
+
+# 部署 / 迁移产物
+defect-images.tar           # docker save 导出的镜像整包(约12GB, 新机 docker load 用)
+*.sql                       # mysqldump 数据库导出(dump.sql 等)
+
+# 临时调试文件
+*.py.bak
+debug_*.py

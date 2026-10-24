@@ -1,0 +1,49 @@
+# 一键编排: backend + worker + frontend(nginx).
+# MySQL/Redis 不在这里定义 —— 复用你已经 docker run 起来的 defect-mysql / defect-redis,
+# 容器内通过 host.docker.internal 访问宿主机端口(它们都 -p 映射到了宿主机).
+name: defect
+
+services:
+  # ===== 后端 API =====
+  backend:
+    build: ./backend
+    container_name: defect-backend
+    env_file: backend/.env            # 注入 SECRET_KEY/密码等(文件在镜像里被排除)
+    environment:
+      # 覆盖 .env 里的 127.0.0.1: 容器内的 127.0.0.1 是容器自己, 必须用
+      # host.docker.internal 指向宿主机, 再由宿主机端口映射到现有容器
+      MYSQL_HOST: host.docker.internal
+      REDIS_HOST: host.docker.internal
+    volumes:
+      # 模型/上传/结果 全部挂载宿主机目录: 容器和本地开发共用同一份数据
+      - ./backend/weights:/app/weights
+      - ./backend/uploads:/app/uploads
+      - ./backend/results:/app/results
+    restart: unless-stopped
+
+  # ===== Celery worker(与 backend 同镜像, 换启动命令) =====
+  worker:
+    build: ./backend
+    container_name: defect-worker
+    command: python -m celery -A app.core.celery_app worker --loglevel=info --pool=solo
+    env_file: backend/.env
+    environment:
+      MYSQL_HOST: host.docker.internal
+      REDIS_HOST: host.docker.internal
+    volumes:
+      - ./backend/weights:/app/weights
+      - ./backend/uploads:/app/uploads
+      - ./backend/results:/app/results
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # ===== 前端(nginx: 静态 + 反代) =====
+  frontend:
+    build: ./frontend
+    container_name: defect-frontend
+    ports:
+      - "8080:80"   # 浏览器访问 http://localhost:8080; backend 不对外暴露端口, 全走 nginx
+    depends_on:
+      - backend
+    restart: unless-stopped
