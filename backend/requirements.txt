@@ -11,8 +11,11 @@ sqlalchemy                # ORM
 pymysql                   # MySQL 驱动
 cryptography              # pymysql 认证加密依赖
 redis                     # Redis 客户端(任务队列/进度)
+celery[redis]             # 分布式任务队列, Redis 作 broker/backend
 pydantic-settings         # .env 配置管理
 email-validator           # pydantic EmailStr 校验依赖
+
+celery[redis]
 
 # ===== 认证 =====
 pyjwt                     # JWT 签发与校验
