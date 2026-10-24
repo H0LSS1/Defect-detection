@@ -14,8 +14,12 @@ backend/uploads/
 backend/results/
 
 # 前端
-frontend/node_modules/
-frontend/dist/
+frontend/node_modules/      # 依赖包, npm install 可恢复
+frontend/dist/              # 生产构建产物
+frontend/dist-ssr/          # SSR 构建产物(不用 SSR 也顺手忽略)
+frontend/coverage/          # 测试覆盖率报告
+frontend/*.local            # Vite 本地环境变量(.env.development.local 等, 可能有敏感信息)
+frontend/dev-dist/          # dev 移动端调试产物(若装 PWA 插件会生成)
 
 # IDE / 系统
 .vscode/

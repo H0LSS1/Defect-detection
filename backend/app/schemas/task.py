@@ -20,6 +20,7 @@ class TaskOut(BaseModel):
     task_no: str
     task_name: str
     status: TaskStatus
+    username: str | None = None   # 创建人用户名(admin 的任务列表"检测人"列用)
     total_images: int
     completed_images: int
     confidence_threshold: float

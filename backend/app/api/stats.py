@@ -8,7 +8,7 @@
 from collections import Counter
 from datetime import date, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -23,12 +23,23 @@ router = APIRouter(prefix="/api/stats", tags=["stats"])
 
 
 @router.get("/overview")
-def overview(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    """看板总览: 一次请求返回所有图表数据(省得前端发好几个请求)."""
-    # ① 确定数据可见范围: admin 全平台, inspector 仅本人
+def overview(
+    # 筛选参数(都是可选): /overview?task_no=TSK...&class_name=person
+    task_no: str | None = Query(default=None, description="按任务号过滤"),
+    class_name: str | None = Query(default=None, description="按类别过滤(模型原始类别名)"),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """看板总览: 一次请求返回所有图表数据(省得前端发好几个请求).
+
+    筛选逻辑: 任务过滤收窄"数据可见范围", 类别过滤只收窄"检出框".
+    """
+    # ① 确定数据可见范围: admin 全平台, inspector 仅本人; 再叠加任务筛选
     tasks_q = db.query(Task)
     if user.role != UserRole.admin:
         tasks_q = tasks_q.filter(Task.user_id == user.id)
+    if task_no:
+        tasks_q = tasks_q.filter(Task.task_no == task_no)
     tasks = tasks_q.all()
     task_ids = [t.id for t in tasks]  # 后面用这批 id 过滤图片和检出框
 
@@ -37,14 +48,14 @@ def overview(user: User = Depends(get_current_user), db: Session = Depends(get_d
     images = (
         db.query(Image).filter(Image.task_id.in_(task_ids)).all() if task_ids else []
     )
-    detections = (
+    dets_q = (
         db.query(DetectionResult)
         .join(Image, DetectionResult.image_id == Image.id)
         .filter(Image.task_id.in_(task_ids))
-        .all()
-        if task_ids
-        else []
     )
+    if class_name:
+        dets_q = dets_q.filter(DetectionResult.class_name == class_name)
+    detections = dets_q.all() if task_ids else []
 
     # ③ 类别分布: 统计每个类别出现次数, 并翻译成中文名/颜色.
     # Counter 是标准库的计数器, Counter(["a","a","b"]) → {"a":2,"b":1}

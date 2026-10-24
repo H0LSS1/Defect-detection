@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_admin
 from app.core.db import get_db
 from app.core.security import create_access_token, hash_password, verify_password
-from app.schemas.user import Token, UserCreate, UserLogin, UserOut
+from app.schemas.user import Token, UserCreate, UserLogin, UserOut, UserUpdate
 from models.user import User
 
 # prefix: 本文件所有接口的公共前缀; tags: Swagger 文档里的分组名
@@ -82,3 +82,41 @@ def me(user: User = Depends(get_current_user)):
     加一个参数 user: User = Depends(get_current_user) 就行.
     """
     return user
+
+
+# ============ 以下为管理员接口(require_admin 依赖把非 admin 全部挡在 403) ============
+
+
+@router.get("/users", response_model=list[UserOut])
+def list_users(user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """用户列表(admin): 用户管理页的数据源."""
+    return db.query(User).order_by(User.id).all()
+
+
+@router.put("/users/{user_id}", response_model=UserOut)
+def update_user(
+    user_id: int,
+    body: UserUpdate,
+    user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """修改用户(admin): 启用/禁用账号、调整角色.
+
+    安全约束: 不允许管理员修改自己的状态/角色 ——
+    防止把自己禁用或把自己降级后, 平台失去最后一个管理员.
+    """
+    target = db.get(User, user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if target.id == user.id:
+        raise HTTPException(status_code=400, detail="不能修改自己的账号")
+
+    # 只更新请求里显式传了的字段(Pydantic 默认值 None = "不修改")
+    if body.status is not None:
+        target.status = body.status
+    if body.role is not None:
+        target.role = body.role
+
+    db.commit()
+    db.refresh(target)
+    return target

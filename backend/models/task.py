@@ -9,11 +9,15 @@
 
 from datetime import datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Numeric, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from models.base import Base
+
+if TYPE_CHECKING:
+    from models.user import User  # 仅类型检查时导入, 避免循环导入
 
 
 class TaskStatus(str, Enum):
@@ -67,5 +71,14 @@ class Task(Base):
     # 开始/结束时间(计耗时用)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    # 关系: 任务 -> 创建人对象(user_id 外键的面向对象视图).
+    # lazy="joined": 查任务时一次 JOIN 把用户带出来, 列表页显示"检测人"不会逐行查库(N+1 问题).
+    owner: Mapped["User"] = relationship("User", lazy="joined")
+
+    @property
+    def username(self) -> str | None:
+        """便捷属性: 创建人的用户名(TaskOut 的 from_attributes 转换会读取它)."""
+        return self.owner.username if self.owner is not None else None
 
     __tablename__ = "tasks"

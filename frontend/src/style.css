@@ -1,0 +1,36 @@
+/* ===== 全局样式: 所有页面共享的基础视觉规范 ===== */
+
+/* 全局字体与背景 */
+body {
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased; /* 字体抗锯齿, 更细腻 */
+}
+
+/* 卡片统一升级: 圆角 + 轻阴影 + 悬浮时微微抬升(有"可交互"的质感) */
+.el-card {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08) !important;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+.el-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 21, 41, 0.12) !important;
+}
+
+/* 页面切换淡入动画: 路由变化时内容不生硬 */
+.fade-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* 通用小工具类: 各页面复用, 减少重复样式 */
+.mb {
+  margin-bottom: 16px;
+}
+.hint {
+  color: #999;
+  font-size: 12px;
+}

@@ -57,8 +57,19 @@ class UserOut(BaseModel):
     role: UserRole          # 枚举自动序列化成 "inspector"/"admin"
     status: bool
     created_at: datetime
+    last_login: datetime | None = None   # 用户管理列表展示用
     # 注意: 这里故意没有 password_hash 字段 —— ORM 对象里即使有,
     # 转换成 UserOut 后也会被丢弃, 密码哈希永远不会泄露给前端.
+
+
+class UserUpdate(BaseModel):
+    """管理员修改用户的请求体(PUT /api/auth/users/{user_id}).
+
+    两个字段都可省略: 只传 status 就只改状态, 只传 role 就只改角色.
+    """ 
+
+    status: bool | None = None      # 启用(True)/禁用(False)
+    role: UserRole | None = None    # 改成 inspector/admin
 
 
 class Token(BaseModel):
